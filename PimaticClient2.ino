@@ -6,8 +6,8 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 
-const char* ssid     = "--------------";
-const char* password = "--------------";
+const char* ssid     = "*************************";
+const char* password = "*************************";
 
 // The IP address of your Pimatic installation
 const char* Pimatic_host = "192.168.1.11";
@@ -27,24 +27,7 @@ void setup() {
   delay(900);
   digitalWrite(12, LOW); 
   
-  // We start by connecting to a WiFi network
-
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-  
-  WiFi.begin(ssid, password);
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("WiFi connected");  
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  wifi_connect;
   
   // Attach Interrupts
   // pin 14: a hall sensor model OH44E
@@ -113,12 +96,18 @@ void loop() {
   {
     Serial.println("connected false");
     if (!client.connect(Pimatic_host, httpPort)) {
-      Serial.println("connection failed");
+      Serial.println("connection to pimatic failed");
       delay(1500);
+      // Reconnect to wifi if not connected anymore
+      if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("connection to wireless failed");
+        wifi_connect;
+        }
       return;
     }
   }
-
+  
+  
   if (bckelapsed_e > 251) 
   {
     if ((data_elec != old_data_elec) and (!data_elec.endsWith(",0"))) {client.println(data_elec);}
@@ -159,4 +148,27 @@ void elec()
   start_e=millis();
   //Serial.println("ElecTick");
   delayMicroseconds(250000);
+}
+
+void wifi_connect()
+{
+  // We start by connecting to a WiFi network
+
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");  
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  
 }
